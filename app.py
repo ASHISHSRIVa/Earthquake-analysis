@@ -1,18 +1,17 @@
-import pandas as pd
 import streamlit as st
+import pandas as pd
 import folium
 from folium.plugins import HeatMap
 from streamlit_folium import st_folium
 
-# Load and preprocess dataset
-data = pd.read_csv(r"C:\Users\HP\Downloads\earthquake_1995-2023.csv")
+# Load data
+data = pd.read_csv('/mnt/data/earthquake_1995-2023.csv')
 data['date_time'] = pd.to_datetime(data['date_time'])
-data['year'] = data['date_time'].dt.year
 
-# Streamlit app setup
-st.title("Earthquake Analysis Dashboard (1995-2023)")
+# Streamlit app
+st.title("Earthquake Analysis Dashboard")
 
-# Global Heatmap
+# Heatmap
 st.header("Global Earthquake Heatmap")
 m = folium.Map(location=[0, 0], zoom_start=2)
 heat_data = [[row['latitude'], row['longitude'], row['magnitude']] for index, row in data.iterrows()]
@@ -21,19 +20,52 @@ st_data = st_folium(m, width=700, height=450)
 
 # Yearly Trends
 st.header("Yearly Earthquake Trends")
-yearly_trend = data.groupby(data['year']).size()
+yearly_trend = data.groupby(data['date_time'].dt.year).size()
 st.bar_chart(yearly_trend)
 
-# Alert Level Distribution
-st.header("Alert Level Analysis")
-alert_counts = data['alert'].value_counts()
-st.bar_chart(alert_counts)
-
-# Predictive Model
-st.header("Predict Community Determined Intensity (CDI) or Modified Mercalli Intensity (MMI)")
-st.subheader("Input Parameters")
-mag = st.slider("Magnitude:", min_value=0.0, max_value=10.0, step=0.1, value=5.0)
-depth = st.slider("Depth (km):", min_value=0.0, max_value=700.0, step=1.0, value=10.0)
+# Model Prediction
+st.header("Predict CDI or MMI")
+mag = st.slider("Select Magnitude:", min_value=0.0, max_value=10.0, step=0.1)
+depth = st.slider("Select Depth (km):", min_value=0.0, max_value=700.0, step=1.0)
 if st.button("Predict"):
-    # Placeholder for a prediction model
-    st.write(f"Predicted CDI/MMI: {mag * 1.2 - depth * 0.02:.2f} (Example formula)")
+    # Example prediction logic
+    # Ensure you have a model loaded here, e.g., a trained machine learning model
+    # For now, just a placeholder:
+    prediction = mag * depth  # This is a dummy logic; replace it with actual prediction model
+    st.write(f"Predicted CDI/MMI: {prediction:.2f}")
+
+# Geospatial Risk Maps: Highlighting high-seismicity and tsunami-prone zones
+st.header("Geospatial Risk Maps: High-Seismicity and Tsunami-Prone Zones")
+
+# Create a folium map for risk zones
+risk_map = folium.Map(location=[20, 30], zoom_start=2)
+
+# High Seismicity Zones (example points, you can replace this with real data)
+seismicity_zones = [
+    {"name": "Zone 1", "coords": [38.2975, 142.3722]},  # Example: Japan (near Tohoku)
+    {"name": "Zone 2", "coords": [-33.8688, 151.2093]},  # Example: Australia
+    {"name": "Zone 3", "coords": [19.4326, -99.1332]},  # Example: Mexico City
+]
+
+for zone in seismicity_zones:
+    folium.Marker(
+        location=zone["coords"],
+        popup=f"High Seismicity Zone: {zone['name']}",
+        icon=folium.Icon(color='red')
+    ).add_to(risk_map)
+
+# Tsunami-Prone Zones (example points, you can replace this with real data)
+tsunami_zones = [
+    {"name": "Tsunami Risk Zone 1", "coords": [0, 100]},  # Example: Pacific Ocean
+    {"name": "Tsunami Risk Zone 2", "coords": [-10, 120]},  # Example: Indian Ocean
+]
+
+for zone in tsunami_zones:
+    folium.Marker(
+        location=zone["coords"],
+        popup=f"Tsunami Risk Zone: {zone['name']}",
+        icon=folium.Icon(color='blue')
+    ).add_to(risk_map)
+
+# Display the map with high seismicity and tsunami-prone zones
+st_data_risk = st_folium(risk_map, width=700, height=450)
