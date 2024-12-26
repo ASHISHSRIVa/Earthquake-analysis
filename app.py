@@ -5,7 +5,7 @@ from folium.plugins import HeatMap
 from streamlit_folium import st_folium
 
 # Load data
-data = pd.read_csv("C:\Users\HP\Downloads\Earthquake analysis\app.py")
+data = pd.read_csv(r"C:\Users\HP\Downloads\Earthquake analysis\app.py")
 data['date_time'] = pd.to_datetime(data['date_time'])
 
 # Streamlit app
